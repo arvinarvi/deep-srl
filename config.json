@@ -1,18 +1,19 @@
 {
-  "train_file_path": "../data/train.txt",
+  "train_file_path": "../data/CoNLL2009-train.txt",
   "train_extended_file_path": "../data/train_extended.txt",
-  "valid_file_path": "../data/valid.txt",
-  "test_file_path": "../data/test.txt",
+  "valid_file_path": "../data/CoNLL2009-dev.txt",
+  "test_file_path": "../data/CoNLL2009-eval.txt",
   "batch_size": 14,
-  "epochs": 80,
-  "training_verbose": 2,
+  "epochs": 1,
+  "training_verbose": 1,
   "print_wrong_tags": true,
   "char_embedding_dimension": 20,
   "char_lstm_dim": 24,
   "word_lstm_dim": 150,
   "learning_rate": 0.01,
   "clipnorm": 5.0,
-  "optimizer": "sgd",
+  "optimizer": "adam",
   "word_dropout": 0.3,
-  "train_with_validation": false
+  "train_with_validation": false,
+  "embedding_file_path": "/home/aravindh/Documents/PHD/NUS/CS6207/Bi-CRF for NER/embedding/glove.6B/glove.6B.100d.txt"
 }

@@ -1,10 +1,10 @@
 import numpy as np
 
 
-def get_word_embedding(words):
+def get_word_embedding(emb_path, words):
     word_index = {}
     word_embeddings = []
-    embeddings = open("../embedding/glove.6B.100d.txt", encoding="utf-8")
+    embeddings = open(emb_path, encoding="utf-8")
 
     for line in embeddings:
         split = line.strip().split(" ")
@@ -29,14 +29,14 @@ def get_word_embedding(words):
 
 def get_char_index_matrix():
     char_index = {"PADDING": 0, "UNKNOWN": 1}
-    for c in " 0abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,-_()[]{}!?:;#'\"/\\%$`&=*+@^~|":
+    for c in " 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,-_()[]{}!?:;#'\"/\\%$`&=*+@^~|":
         char_index[c] = len(char_index)
     return char_index
 
 
 def get_label_index_matrix():
-    label_index = {'O': 0, 'B-PER': 1, 'I-PER': 2, 'B-LOC': 3, 'I-LOC': 4, 'B-ORG': 5, 'I-ORG': 6, 'B-MISC': 7,
-                   'I-MISC': 8}
+    label_index = {'A0': 0, 'A1': 1, 'A2': 2, 'A3': 3, 'A4': 4, 'AM-LOC': 5, 'AM-MNR': 6, 'AM-MOD': 7,
+                   'AM-NEG': 8, 'AM-TMP':9, '_':10}
     return label_index
 
 
@@ -45,3 +45,15 @@ def get_pos_index_matrix(POS_tag_set):
     for POS_tag in POS_tag_set:
         POS_tag_index[POS_tag] = len(POS_tag_index)
     return POS_tag_index
+
+def get_deprel_index_matrix(dep_set):
+    dep_index = {"PAD":0}
+    for dep_tag in dep_set:
+        dep_index[dep_tag] = len(dep_index)
+    return dep_index
+
+def get_ner_index_matrix(ner_set):
+    ner_index = {"PAD":0}
+    for ner_tag in ner_set:
+        ner_index[ner_tag] = len(ner_index)
+    return ner_index

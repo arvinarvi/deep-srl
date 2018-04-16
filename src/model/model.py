@@ -6,7 +6,7 @@ import keras.backend as K
 from keras.optimizers import SGD, Adam
 
 
-def get_model(word_embeddings, char_index, pos_tag_index, config):
+def get_model(word_embeddings, char_index, pos_tag_index, dep_index, ner_index, config):
     word_ids = Input(batch_shape=(None, None), dtype='int32')
     words = Embedding(input_dim=word_embeddings.shape[0],
                                     output_dim=word_embeddings.shape[1],
@@ -16,7 +16,10 @@ def get_model(word_embeddings, char_index, pos_tag_index, config):
     casing_input = Input(batch_shape=(None, None, 11), dtype='float32')
 
     pos_input = Input(batch_shape=(None, None, len(pos_tag_index)), dtype='float32')
-
+    
+    dep_input = Input(batch_shape=(None, None, len(dep_index)), dtype='float32')
+    
+    ner_input = Input(batch_shape=(None, None, len(ner_index)), dtype='float32')
     # build character based word embedding
     char_input = Input(batch_shape=(None, None, None), dtype='int32')
     char_embeddings = Embedding(input_dim=len(char_index),
@@ -35,21 +38,21 @@ def get_model(word_embeddings, char_index, pos_tag_index, config):
     word_representation = Concatenate(axis=-1)([words, char_embeddings, pos_input])
     x = Dropout(config['word_dropout'])(word_representation)
     x = Bidirectional(LSTM(units=config['word_lstm_dim'], return_sequences=True, dropout=0.2, recurrent_dropout=0.5))(x)
-    scores = Dense(9)(x)
+    scores = Dense(11)(x)
 
     crfF = ChainCRF()
     predF = crfF(scores)
 
-    crfB = ChainCRF(go_backwards=True)
-    predB = crfB(scores)
+#    crfB = ChainCRF(go_backwards=True)
+#    predB = crfB(scores)
 
-    model = Model(inputs=[word_ids, casing_input, pos_input, char_input], outputs=[predF, predB])
+    model = Model(inputs=[word_ids, casing_input, pos_input, dep_input, ner_input, char_input], outputs=predF)
 
     opt = SGD(lr=config['learning_rate'], clipnorm=config['clipnorm'])
 
     if(config['optimizer'] == "adam"):
         opt = Adam(lr=config['learning_rate'])
 
-    model.compile(loss=[crfF.loss, crfB.loss], optimizer=opt)
+    model.compile(loss=crfF.loss, optimizer=opt)
     model.summary()
     return model

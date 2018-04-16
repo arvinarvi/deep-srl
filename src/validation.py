@@ -65,10 +65,13 @@ def compute_precision(guessed_sentences, correct_sentences):
     
 class Metrics(Callback):
     
-    def __init__(self, train_data, idx2Label, pos_tag_index):
+    def __init__(self, train_data, idx2Label, pos_tag_index, dep_index, ner_index):
         self.valid_data = train_data    
         self.idx2Label = idx2Label
         self.pos_tag_index = pos_tag_index
+        self.dep_index = dep_index
+        self.ner_index = ner_index
+        
         
     def on_train_begin(self, logs={}):         
         return
@@ -84,12 +87,12 @@ class Metrics(Callback):
         correctLabels = []
         predLabels = []
         for i, data in enumerate(dataset):
-            tokens, casing, char, labels, pos_tag = data
-            input, output = transform([[tokens, casing, char, labels, pos_tag]], max(2,len(labels)), self.pos_tag_index)
+            tokens, casing, char, pos_tag, dep, ner, label = data
+            input, output = transform([[tokens, casing, char, pos_tag, dep, ner, label]], max(2,len(label)), self.pos_tag_index, self.dep_index, self.ner_index)
             pred = self.model.predict(input, verbose=False)
-            pred = np.add(np.squeeze(pred[0]), np.flip(np.squeeze(pred[1]), axis=0))
+#            pred = np.add(np.squeeze(pred[0]), np.flip(np.squeeze(pred[1]), axis=0))
             pred = pred.argmax(axis=-1)  # Predict the classes
-            output = np.squeeze(output[0])
+            output = np.squeeze(output)
             output = np.argmax(output, axis=1)
             correctLabels.append(output)
             predLabels.append(pred)                   
