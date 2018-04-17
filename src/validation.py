@@ -1,19 +1,22 @@
 from keras.callbacks import Callback
 from src.preprocess import transform
 import numpy as np
+from sklearn.metrics import precision_score
 
 # Method to compute the accuracy. Call predict_labels to get the labels for the dataset
-def compute_f1(predictions, correct, idx2Label):
-    label_pred = []
-    for sentence in predictions:
-        label_pred.append([idx2Label[element] for element in sentence])
+def compute_f1(predictions, correct, idx2Label):    
+    assert(len(predictions) == len(correct))
+    
+    label_pred = []        
+    for sentence in predictions:             
+        label_pred.append([idx2Label[element] for element in sentence])            
 
     label_correct = []
     for sentence in correct:
         label_correct.append([idx2Label[element] for element in sentence])
-
-    prec = compute_precision(label_pred, label_correct)
-    rec = compute_precision(label_correct, label_pred)
+        
+    prec = compute_precision_score(label_pred, label_correct)#compute_precision(label_pred, label_correct)
+    rec = compute_precision_score(label_correct, label_pred)#compute_precision(label_correct, label_pred)
 
     f1 = 0
     if (rec + prec) > 0:
@@ -22,46 +25,15 @@ def compute_f1(predictions, correct, idx2Label):
     return prec, rec, f1
 
 
-def compute_precision(guessed_sentences, correct_sentences):
-    assert (len(guessed_sentences) == len(correct_sentences))
-    correctCount = 0
-    count = 0
+def compute_precision_score(predicted, correct):
+    
+    prec = 0
+    
+    L = len(predicted)
+    for idx in range(L):
+        prec = prec + precision_score(predicted[idx], correct[idx], average='macro')    
 
-    for sentenceIdx in range(len(guessed_sentences)):
-        guessed = guessed_sentences[sentenceIdx]
-        correct = correct_sentences[sentenceIdx]
-        assert (len(guessed) == len(correct))
-        idx = 0
-        while idx < len(guessed):
-            if guessed[idx][0] == 'B':  # A new chunk starts
-                count += 1
-
-                if guessed[idx] == correct[idx]:
-                    idx += 1
-                    correctlyFound = True
-
-                    while idx < len(guessed) and guessed[idx][0] == 'I':  # Scan until it no longer starts with I
-                        if guessed[idx] != correct[idx]:
-                            correctlyFound = False
-
-                        idx += 1
-
-                    if idx < len(guessed):
-                        if correct[idx][0] == 'I':  # The chunk in correct was longer
-                            correctlyFound = False
-
-                    if correctlyFound:
-                        correctCount += 1
-                else:
-                    idx += 1
-            else:
-                idx += 1
-
-    precision = 0
-    if count > 0:
-        precision = float(correctCount) / count
-
-    return precision
+    return prec/L
     
 class Metrics(Callback):
     
@@ -92,11 +64,18 @@ class Metrics(Callback):
             pred = self.model.predict(input, verbose=False)
 #            pred = np.add(np.squeeze(pred[0]), np.flip(np.squeeze(pred[1]), axis=0))
             pred = pred.argmax(axis=-1)  # Predict the classes
+            
             output = np.squeeze(output)
-            output = np.argmax(output, axis=1)
+            output = np.argmax(output, axis=1)            
             correctLabels.append(output)
-            predLabels.append(pred)                   
+            
+            pred = np.squeeze(pred)
+            predLabels.append(pred)                            
         
+#        print('predLables', predLabels)
+#        print('correctLables', correctLabels)
+#        print(len(predLabels[1]))
+#        print(len(correctLabels[1]))
         pre_dev, rec_dev, f1_dev = compute_f1(predLabels, correctLabels, self.idx2Label)
         print("Dev-Data: Prec: %.5f, Rec: %.5f, F1: %.5f" % (pre_dev, rec_dev, f1_dev))
 

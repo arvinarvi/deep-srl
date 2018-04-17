@@ -31,9 +31,12 @@ def tag_dataset(dataset):
         pred = model.predict(input, verbose=False)
 #        pred = np.add(np.squeeze(pred[0]), np.flip(np.squeeze(pred[1]), axis=0))
         pred = pred.argmax(axis=-1)  # Predict the classes
+        
         output = np.squeeze(output)
-        output = np.argmax(output, axis=1)
+        output = np.argmax(output, axis=1)            
         correctLabels.append(output)
+        
+        pred = np.squeeze(pred)
         predLabels.append(pred)
         b.update(i)
 
@@ -41,27 +44,32 @@ def tag_dataset(dataset):
     return predLabels, correctLabels
 
 
-#train = readfile(config['train_extended_file_path']) if config['train_with_validation'] else readfile(config['train_file_path'])
-#val = readfile(config['valid_file_path'])
-#test = readfile(config['test_file_path'])
+train = readfile(config['train_extended_file_path']) if config['train_with_validation'] else readfile(config['train_file_path'])
+val = readfile(config['valid_file_path'])
+test = readfile(config['test_file_path'])
     
 
 p = 1
 
-#train = [sent2features(s,p) for s in train]
-#val = [sent2features(s,p) for s in val]
-#test = [sent2features(s,p) for s in test]
+train = [sent2features(s,p) for s in train]
+val = [sent2features(s,p) for s in val]
+test = [sent2features(s,p) for s in test]
+
+
+#train = train[0:100]
+#val = val[0:100]
+#test = test[0:100]
 
 #validation_data = validation
 
-with open('../data/train.pkl', 'rb') as f:
-    train = pickle.load(f)
-    
-with open('../data/val.pkl', 'rb') as f:
-    val = pickle.load(f)
-    
-with open('../data/test.pkl', 'rb') as f:
-    test = pickle.load(f)
+#with open('../data/train.pkl', 'rb') as f:
+#    train = pickle.load(f)
+#    
+#with open('../data/val.pkl', 'rb') as f:
+#    val = pickle.load(f)
+#    
+#with open('../data/test.pkl', 'rb') as f:
+#    test = pickle.load(f)
 
 train = add_chars(train)
 val = add_chars(val)
@@ -96,11 +104,11 @@ else:
     model.fit_generator(generator=train_batches, steps_per_epoch=train_steps, epochs=epochs, callbacks=[metric],
                     verbose=config['training_verbose'])
 
-##   Performance on test dataset
-#predLabels, correctLabels = tag_dataset(test_set)
-#pre_test, rec_test, f1_test = compute_f1(predLabels, correctLabels, idx2Label)
-#print("Test-Data: Prec: %.5f, Rec: %.5f, F1: %.5f" % (pre_test, rec_test, f1_test))
-#
+#   Performance on test dataset
+predLabels, correctLabels = tag_dataset(test_set)
+pre_test, rec_test, f1_test = compute_f1(predLabels, correctLabels, idx2Label)
+print("Test-Data: Prec: %.5f, Rec: %.5f, F1: %.5f" % (pre_test, rec_test, f1_test))
+
 #if config['print_wrong_tags']:
 #    predLabels, correctLabels = tag_dataset(validation_set)
 #    print_wrong_tags(validation_data, predLabels, idx2Label)

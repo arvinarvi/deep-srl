@@ -4,7 +4,7 @@
   "valid_file_path": "../data/CoNLL2009-dev.txt",
   "test_file_path": "../data/CoNLL2009-eval.txt",
   "batch_size": 14,
-  "epochs": 1,
+  "epochs": 5,
   "training_verbose": 1,
   "print_wrong_tags": true,
   "char_embedding_dimension": 20,
