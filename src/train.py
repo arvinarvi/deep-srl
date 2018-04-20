@@ -17,6 +17,8 @@ from src.validation import compute_f1
 from src.analysis import print_wrong_tags
 import json
 import pickle
+import time
+
 
 with open('../config.json') as json_data_file:
     config = json.load(json_data_file)
@@ -47,18 +49,16 @@ def tag_dataset(dataset):
 train = readfile(config['train_extended_file_path']) if config['train_with_validation'] else readfile(config['train_file_path'])
 val = readfile(config['valid_file_path'])
 test = readfile(config['test_file_path'])
-    
+#  
+#train = train[0:100]  
+#val = val[0:100]
+#test = test[0:100]
 
 p = 1
 
 train = [sent2features(s,p) for s in train]
 val = [sent2features(s,p) for s in val]
 test = [sent2features(s,p) for s in test]
-
-
-#train = train[0:100]
-#val = val[0:100]
-#test = test[0:100]
 
 #validation_data = validation
 
@@ -71,6 +71,7 @@ test = [sent2features(s,p) for s in test]
 #with open('../data/test.pkl', 'rb') as f:
 #    test = pickle.load(f)
 
+t = time.time()
 train = add_chars(train)
 val = add_chars(val)
 test = add_chars(test)
@@ -101,14 +102,15 @@ epochs = config['epochs']
 if config['train_with_validation']:
     model.fit_generator(generator=train_batches, steps_per_epoch=train_steps, epochs=epochs, verbose=config['training_verbose'])
 else:
-    model.fit_generator(generator=train_batches, steps_per_epoch=train_steps, epochs=epochs, callbacks=[metric],
-                    verbose=config['training_verbose'])
+    model.fit_generator(generator=train_batches, steps_per_epoch=train_steps, epochs=epochs, callbacks=[metric], 
+                        verbose=config['training_verbose'])
 
 #   Performance on test dataset
 predLabels, correctLabels = tag_dataset(test_set)
 pre_test, rec_test, f1_test = compute_f1(predLabels, correctLabels, idx2Label)
 print("Test-Data: Prec: %.5f, Rec: %.5f, F1: %.5f" % (pre_test, rec_test, f1_test))
 
+print(time.time() - t)
 #if config['print_wrong_tags']:
 #    predLabels, correctLabels = tag_dataset(validation_set)
 #    print_wrong_tags(validation_data, predLabels, idx2Label)

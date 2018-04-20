@@ -6,9 +6,9 @@ from sklearn.metrics import precision_score
 # Method to compute the accuracy. Call predict_labels to get the labels for the dataset
 def compute_f1(predictions, correct, idx2Label):    
     assert(len(predictions) == len(correct))
-    
+        
     label_pred = []        
-    for sentence in predictions:             
+    for sentence in predictions:                     
         label_pred.append([idx2Label[element] for element in sentence])            
 
     label_correct = []
@@ -66,10 +66,10 @@ class Metrics(Callback):
             pred = pred.argmax(axis=-1)  # Predict the classes
             
             output = np.squeeze(output)
-            output = np.argmax(output, axis=1)            
+            output = np.argmax(output, axis=1)              
             correctLabels.append(output)
             
-            pred = np.squeeze(pred)
+            pred = np.squeeze(pred)            
             predLabels.append(pred)                            
         
 #        print('predLables', predLabels)

@@ -196,8 +196,8 @@ def transform(X, max_length_word, pos_tag_index, dep_index, ner_index):
         dep_input.append(to_categorical(pad_sequence(dep, max_length_word), num_classes=len(dep_index)))
         ner_input.append(to_categorical(pad_sequence(ner, max_length_word), num_classes=len(ner_index)))
         char_input.append(pad_sequence(char, max_length_word, True))
-
-    return [np.asarray(word_input), np.asarray(case_input), np.asarray(pos_tag_input), np.asarray(dep_input), np.asarray(ner_input), np.asarray(padding(char_input, max_length_char))], np.asarray(label_input)
+    
+    return [np.asarray(word_input), np.asarray(case_input), np.asarray(pos_tag_input), np.asarray(dep_input), np.asarray(ner_input), np.asarray(padding(char_input, max_length_char))], np.asarray(label_input) #np.flip(np.asarray(label_input), axis=1)]
 
 
 def find_max_length_char(X):
