@@ -8,10 +8,17 @@ from keras.optimizers import SGD, Adam
 
 def get_model(word_embeddings, char_index, pos_tag_index, dep_index, ner_index, config):
     word_ids = Input(batch_shape=(None, None), dtype='int32')
+    head_word_ids = Input(batch_shape=(None, None), dtype='int32')
+    
     words = Embedding(input_dim=word_embeddings.shape[0],
                                     output_dim=word_embeddings.shape[1],
                                     mask_zero=True,
                                     weights=[word_embeddings])(word_ids)
+
+    head = Embedding(input_dim=word_embeddings.shape[0],
+                                    output_dim=word_embeddings.shape[1],
+                                    mask_zero=True,
+                                    weights=[word_embeddings])(head_word_ids)
 
     casing_input = Input(batch_shape=(None, None, 11), dtype='float32')
 
@@ -35,7 +42,7 @@ def get_model(word_embeddings, char_index, pos_tag_index, dep_index, ner_index, 
     # shape = (batch size, max sentence length, char hidden size)
     char_embeddings = Lambda(lambda x: K.reshape(x, shape=[-1, s[1], 2 * config['char_lstm_dim']]))(char_embeddings)
 
-    word_representation = Concatenate(axis=-1)([words, char_embeddings, pos_input, dep_input, ner_input])
+    word_representation = Concatenate(axis=-1)([words, char_embeddings, pos_input, head, dep_input, ner_input])
     x = Dropout(config['word_dropout'])(word_representation)
     x = Bidirectional(LSTM(units=config['word_lstm_dim'], return_sequences=True, dropout=0.2, recurrent_dropout=0.5))(x)
     scores = Dense(11)(x)
@@ -46,7 +53,7 @@ def get_model(word_embeddings, char_index, pos_tag_index, dep_index, ner_index, 
 #    crfB = ChainCRF(go_backwards=True)
 #    predB = crfB(scores)
 
-    model = Model(inputs=[word_ids, casing_input, pos_input, dep_input, ner_input, char_input], outputs=predF)
+    model = Model(inputs=[word_ids, casing_input, pos_input, head_word_ids, dep_input, ner_input, char_input], outputs=predF)
 
     opt = SGD(lr=config['learning_rate'], clipnorm=config['clipnorm'])
 

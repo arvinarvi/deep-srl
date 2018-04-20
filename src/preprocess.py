@@ -112,12 +112,13 @@ def create_matrices(sentences, word_index, label_index, char_index, pos_tag_inde
 
     for sentence in sentences:
         word_indices = []
+        head_word_indices = []
         case_indices = []
         char_indices = []
         label_indices = []
         pos_tag_indices = []
         dep_indices = []
-        ner_indices = []
+        ner_indices = []        
 
         for word, char, pos_tag, head, deprel, ner, label in sentence:            
             word_count += 1
@@ -132,7 +133,16 @@ def create_matrices(sentences, word_index, label_index, char_index, pos_tag_inde
             for x in char:
                 char_idx.append(char_index[x])
             # Get the label and map to int
-            word_indices.append(word_idx)
+            word_indices.append(word_idx)            
+            
+            if  head in word_index:
+                word_idx = word_index[head]
+            elif head.lower() in word_index:
+                word_idx = word_index[head.lower()]
+            else:
+                word_idx = unknown_index
+                
+            head_word_indices.append(word_idx)            
             case_indices.append(get_casing(word))
             char_indices.append(char_idx)
             label_indices.append(label_index[label])
@@ -140,7 +150,7 @@ def create_matrices(sentences, word_index, label_index, char_index, pos_tag_inde
             dep_indices.append(dep_index[deprel])
             ner_indices.append(ner_index[ner])
 
-        dataset.append([word_indices, case_indices, char_indices, pos_tag_indices, dep_indices, ner_indices, label_indices])
+        dataset.append([word_indices, case_indices, char_indices, pos_tag_indices, head_word_indices, dep_indices, ner_indices, label_indices])
 
     return dataset
 
@@ -160,7 +170,7 @@ def create_batches(data, batch_size, pos_tag_index, dep_index, ner_index):
         Generates a batch iterator for a dataset.
         """
         def get_length(data):
-            word, case, char, pos_tag, dep, ner, label = data
+            word, case, char, pos_tag, head, dep, ner, label = data
             return len(word)
 
         data_size = len(data)
@@ -179,6 +189,7 @@ def create_batches(data, batch_size, pos_tag_index, dep_index, ner_index):
 
 def transform(X, max_length_word, pos_tag_index, dep_index, ner_index):
     word_input = []
+    head_word_input = []
     char_input = []
     case_input = []
     label_input = []
@@ -188,8 +199,9 @@ def transform(X, max_length_word, pos_tag_index, dep_index, ner_index):
 
     max_length_char = find_max_length_char(X)
 
-    for word, case, char, pos_tag, dep, ner, label in X:
+    for word, case, char, pos_tag, head, dep, ner, label in X:
         word_input.append(pad_sequence(word, max_length_word))
+        head_word_input.append(pad_sequence(head, max_length_word))
         case_input.append(pad_sequence(case, max_length_word, False, True))
         label_input.append(np.eye(11)[pad_sequence(label, max_length_word)])
         pos_tag_input.append(to_categorical(pad_sequence(pos_tag, max_length_word), num_classes=len(pos_tag_index)))
@@ -197,12 +209,12 @@ def transform(X, max_length_word, pos_tag_index, dep_index, ner_index):
         ner_input.append(to_categorical(pad_sequence(ner, max_length_word), num_classes=len(ner_index)))
         char_input.append(pad_sequence(char, max_length_word, True))
     
-    return [np.asarray(word_input), np.asarray(case_input), np.asarray(pos_tag_input), np.asarray(dep_input), np.asarray(ner_input), np.asarray(padding(char_input, max_length_char))], np.asarray(label_input) #np.flip(np.asarray(label_input), axis=1)]
+    return [np.asarray(word_input), np.asarray(case_input), np.asarray(pos_tag_input), np.asarray(head_word_input), np.asarray(dep_input), np.asarray(ner_input), np.asarray(padding(char_input, max_length_char))], np.asarray(label_input) #np.flip(np.asarray(label_input), axis=1)]
 
 
 def find_max_length_char(X):
     max_length = 0;
-    for word, case, char, pos_tag, dep, ner, label in X:
+    for word, case, char, pos_tag, head, dep, ner, label in X:
         for ch in char:
             if len(ch) > max_length:
                 max_length = len(ch)

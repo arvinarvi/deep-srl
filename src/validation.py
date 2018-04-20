@@ -59,8 +59,8 @@ class Metrics(Callback):
         correctLabels = []
         predLabels = []
         for i, data in enumerate(dataset):
-            tokens, casing, char, pos_tag, dep, ner, label = data
-            input, output = transform([[tokens, casing, char, pos_tag, dep, ner, label]], max(2,len(label)), self.pos_tag_index, self.dep_index, self.ner_index)
+            tokens, casing, char, pos_tag, head, dep, ner, label = data
+            input, output = transform([[tokens, casing, char, pos_tag, head, dep, ner, label]], max(2,len(label)), self.pos_tag_index, self.dep_index, self.ner_index)
             pred = self.model.predict(input, verbose=False)
 #            pred = np.add(np.squeeze(pred[0]), np.flip(np.squeeze(pred[1]), axis=0))
             pred = pred.argmax(axis=-1)  # Predict the classes
